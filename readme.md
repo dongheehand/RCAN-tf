@@ -38,8 +38,6 @@ python main.py --train_GT_path ./GT_path --train_LR_path ./LR_path --test_GT_pat
 - [RCAN_X3](https://drive.google.com/open?id=1Dlel4QYXcMU1zJvYlnRG3FoKvCQrOg-N)
 - [RCAN_X4](https://drive.google.com/open?id=1QvQQMsFSuuaAmWPYAqImPK2Z3Ka-g42b)
 
-The other pre-trained models for scale 3, 4 are will be updated soon!
-
 2) Unzip the pre-trained model file
 
 ```
@@ -61,8 +59,6 @@ If you want to use self_ensemble, --self\_ensemble option to True
 - [RCAN_X2](https://drive.google.com/open?id=1SIGdGjMieworUG_z2LLay2ysiHCSyjjF)
 - [RCAN_X3](https://drive.google.com/open?id=1Dlel4QYXcMU1zJvYlnRG3FoKvCQrOg-N)
 - [RCAN_X4](https://drive.google.com/open?id=1QvQQMsFSuuaAmWPYAqImPK2Z3Ka-g42b)
-
-The other pre-trained models for scale 3, 4 are will be updated soon!
 
 2) Unzip the pre-trained model file
 
