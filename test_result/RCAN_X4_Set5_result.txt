@@ -1,0 +1,6 @@
+file name : babyx4.png PSNR : 33.954631 SSIM : 0.896831 
+file name : birdx4.png PSNR : 35.664328 SSIM : 0.950820 
+file name : butterflyx4.png PSNR : 29.169278 SSIM : 0.932017 
+file name : headx4.png PSNR : 33.012543 SSIM : 0.799155 
+file name : womanx4.png PSNR : 31.000345 SSIM : 0.919074 
+Y_PSNR : 32.5602 SSIM : 0.8996 

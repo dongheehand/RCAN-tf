@@ -5,6 +5,18 @@ import math
 import os
 import skimage.measure
 import skimage.color
+import tensorflow as tf
+
+def compare_measure(val_gt, output, args):
+    
+    y_output = skimage.color.rgb2ycbcr(output)
+    y_gt = skimage.color.rgb2ycbcr(val_gt)
+    y_output = y_output / 255.0
+    y_gt = y_gt / 255.0
+    y_psnr = skimage.measure.compare_psnr(y_output[args.scale:-args.scale, args.scale:-args.scale, :1], y_gt[args.scale:-args.scale, args.scale:-args.scale, :1], data_range = 1.0)
+    y_ssim = compare_ssim(y_output[args.scale:-args.scale, args.scale:-args.scale, 0], y_gt[args.scale:-args.scale, args.scale:-args.scale, 0], gaussian_weights=True, use_sample_covariance=False, data_range = 1.0)
+    
+    return y_psnr, y_ssim
 
 
 def recursive_forwarding(LR, scale, chopSize, session, net_model, chopShave = 10):
@@ -49,29 +61,27 @@ def self_ensemble(args, model, sess, LR_img, is_recursive = False):
     input_img_list = []
     output_img_list = []
     for i in range(4):
-        input_img_list.append(np.rot90(LR_img, i))
+        input_img_list.append(np.rot90(LR_img, i, axes = [1,2]))
     input_img_list.append(np.fliplr(LR_img))
     input_img_list.append(np.flipud(LR_img))
-    input_img_list.append(np.rot90(np.fliplr(LR_img)))
-    input_img_list.append(np.rot90(np.flipud(LR_img)))
+    input_img_list.append(np.rot90(np.fliplr(LR_img), axes = [1,2]))
+    input_img_list.append(np.rot90(np.flipud(LR_img), axes = [1,2]))
     
     
-    for ele in input_img_list:
-        
-        input_img = np.expand_dims(ele, axis = 0)
-        
+    for input_img in input_img_list:
+                
         if is_recursive :
             output_img = recursive_forwarding(input_img, args.scale, args.chop_size, sess, model, args.chop_shave)
-            output_img_list.append(output_img[0])
+            output_img_list.append(output_img)
             
         else:
             output_img = sess.run(model.output, feed_dict = {model.LR : input_img})
-            output_img_list.append(output_img[0])
+            output_img_list.append(output_img)
             
     reshaped_output_img_list = []
     for i in range(4):
         output_img = output_img_list[i]
-        output_img = np.rot90(output_img, 4-i)
+        output_img = np.rot90(output_img, 4-i, axes = [1,2])
         output_img = output_img.astype(np.float32)
         reshaped_output_img_list.append(output_img)
     
@@ -86,12 +96,12 @@ def self_ensemble(args, model, sess, LR_img, is_recursive = False):
     reshaped_output_img_list.append(output_img)
     
     output_img = output_img_list[6]
-    output_img = np.fliplr(np.rot90(output_img,3))
+    output_img = np.fliplr(np.rot90(output_img,3, axes = [1,2]))
     output_img = output_img.astype(np.float32)
     reshaped_output_img_list.append(output_img)
     
     output_img = output_img_list[7]
-    output_img = np.flipud(np.rot90(output_img,3))
+    output_img = np.flipud(np.rot90(output_img,3, axes = [1,2]))
     output_img = output_img.astype(np.float32)
     reshaped_output_img_list.append(output_img)
     
@@ -99,14 +109,20 @@ def self_ensemble(args, model, sess, LR_img, is_recursive = False):
     overall_img = np.clip(np.round(overall_img), 0.0, 255.0)
     overall_img = overall_img.astype(np.uint8)
         
-    return overall_img
+    return overall_img[0]
 
 def image_loader(image_path):
     
     imgs = sorted(os.listdir(image_path))
     img_list = []
     for ele in imgs:
-        img_list.append(np.array(Image.open(os.path.join(image_path, ele))))
+        _img = np.array(Image.open(os.path.join(image_path, ele)))
+        
+        if len(_img.shape) != 3:
+            _img = np.expand_dims(_img, axis = 2)
+            _img = np.concatenate([_img] * 3, axis = 2)
+            
+        img_list.append(_img)
     
     return np.array(img_list)
 
@@ -175,7 +191,7 @@ def train_with_test(args, model, sess, saver, f, count, val_lr_imgs = None, val_
     if args.in_memory:
     
         for i, lr_img in enumerate(val_lr_imgs):
-
+        
             resize_lr_img = np.expand_dims(lr_img, axis = 0)
             output, learning_rate = sess.run([model.output, model.lr], feed_dict = {model.LR : resize_lr_img, model.global_step : count})
             output = output[0]
@@ -192,6 +208,8 @@ def train_with_test(args, model, sess, saver, f, count, val_lr_imgs = None, val_
 
             RGB_PSNR_list.append(rgb_psnr)
             Y_PSNR_list.append(y_psnr)
+
+                
     else:
         
         sess.run(model.data_loader.init_op['val_init'])
@@ -213,13 +231,14 @@ def train_with_test(args, model, sess, saver, f, count, val_lr_imgs = None, val_
             y_psnr = skimage.measure.compare_psnr(y_output[args.scale:-args.scale, args.scale:-args.scale, :1], y_gt[args.scale:-args.scale, args.scale:-args.scale, :1], data_range = 1.0)
 
             RGB_PSNR_list.append(rgb_psnr)
-            Y_PSNR_list.append(y_psnr)            
+            Y_PSNR_list.append(y_psnr)
 
         
     mean_RGB_PSNR = np.mean(RGB_PSNR_list)
     mean_Y_PSNR = np.mean(Y_PSNR_list)
 
     f.write('%06d-count \t lr : %04f \t RGB_PSNR : %04f \t Y_PSNR : %04f \n'%(count, learning_rate, mean_RGB_PSNR, mean_Y_PSNR))
+
 
 import numpy as np
 from numpy.lib.arraypad import _validate_lengths

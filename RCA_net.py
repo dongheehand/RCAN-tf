@@ -3,11 +3,13 @@ from ops import *
 import numpy as np
 from data_loader import dataloader
 
+
 class RCA_net():
     
     def __init__(self, args):
         
         self.data_loader = dataloader(args)
+        
         self.channel = args.channel
         self.scale = args.scale
         self.n_feats = args.n_feats
@@ -22,6 +24,7 @@ class RCA_net():
         self.mode = args.mode
         self.batch_size = args.batch_size
         self.rgb_mean = [0.4488, 0.4371, 0.4040]
+        
         
     def build_graph(self):
         
@@ -63,7 +66,7 @@ class RCA_net():
         x = x + LongSkipConnection
         
         x = Up_scaling('up_sample', x, self.kernel_size, self.n_feats, self.scale)
-        x = Conv('conv_last', x, self.kernel_size, self.n_feats, self.channel, 1)
+        x = Conv('conv_rec', x, self.kernel_size, self.n_feats, self.channel, 1)
             
         self.output = Mean_shifter(x, self.rgb_mean, sign = 1, rgb_range = 255)        
         

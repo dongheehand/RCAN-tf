@@ -5,6 +5,7 @@ import argparse
 
 parser = argparse.ArgumentParser()
 
+
 def str2bool(v):
     return v.lower() in ('true')
 
@@ -40,6 +41,7 @@ parser.add_argument("--save_test_result", type = str2bool, default = False)
 ## Training or test specification
 parser.add_argument("--mode", type = str, default = "train")
 parser.add_argument("--fine_tuning", type = str2bool, default = False)
+parser.add_argument("--load_tail_part", type = str2bool, default = True)
 parser.add_argument("--log_freq", type = int, default = 1e4)
 parser.add_argument("--model_save_freq", type = int, default = 2 * 1e5)
 parser.add_argument("--pre_trained_model", type = str, default = "./")
@@ -48,6 +50,8 @@ parser.add_argument("--chop_forward", type = str2bool, default = False)
 parser.add_argument("--chop_shave", type = int, default = 10)
 parser.add_argument("--chop_size", type = int, default = 4 * 1e4)
 parser.add_argument("--test_batch", type = int, default = 1)
+parser.add_argument("--test_set", type = str, default = 'benchmark')
+
 
 args = parser.parse_args()
 
@@ -60,16 +64,12 @@ config = tf.ConfigProto()
 config.gpu_options.allow_growth = True
 sess = tf.Session(config = config)
 sess.run(tf.global_variables_initializer())
-saver = tf.train.Saver(max_to_keep = None)
 
 if args.mode == 'train':
-    train(args, model, sess, saver)
+    train(args, model, sess)
     
 elif args.mode == 'test':
-    f = open("test_log_%02d_res_%02d_feats.txt"%(args.n_RG, args.n_feats), 'w')
-    test(args, model, sess, saver, f, step = -1, loading = True)
-    f.close()
-    
+    test(args, model, sess)
+        
 elif args.mode == 'test_only':
-    test_only(args, model, sess, saver)
-    
+    test_only(args, model, sess)

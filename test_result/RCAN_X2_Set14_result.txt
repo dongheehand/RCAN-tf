@@ -1,0 +1,15 @@
+file name : baboonx2.png PSNR : 26.505137 SSIM : 0.801291 
+file name : barbarax2.png PSNR : 30.279528 SSIM : 0.909965 
+file name : bridgex2.png PSNR : 29.577546 SSIM : 0.870800 
+file name : coastguardx2.png PSNR : 31.549758 SSIM : 0.861573 
+file name : comicx2.png PSNR : 30.585556 SSIM : 0.949814 
+file name : facex2.png PSNR : 36.049269 SSIM : 0.892292 
+file name : flowersx2.png PSNR : 35.542109 SSIM : 0.954672 
+file name : foremanx2.png PSNR : 38.320840 SSIM : 0.975114 
+file name : lennax2.png PSNR : 37.546230 SSIM : 0.936844 
+file name : manx2.png PSNR : 31.628404 SSIM : 0.899309 
+file name : monarchx2.png PSNR : 40.623078 SSIM : 0.983143 
+file name : pepperx2.png PSNR : 37.731281 SSIM : 0.926360 
+file name : ppt3x2.png PSNR : 36.383003 SSIM : 0.993404 
+file name : zebrax2.png PSNR : 34.658803 SSIM : 0.948468 
+Y_PSNR : 34.0700 SSIM : 0.9216 
