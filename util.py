@@ -183,7 +183,7 @@ def batch_gen(LR_imgs, HR_imgs, patch_size, scale, batch_size, random_index, ste
     return lr_batch, hr_batch
 
 
-def train_with_test(args, model, sess, saver, f, count, val_lr_imgs = None, val_gt_imgs = None, val_num = 0):
+def train_with_test(args, model, sess, saver, f, count, val_lr_imgs = None, val_gt_imgs = None):
     
     RGB_PSNR_list = []
     Y_PSNR_list = []
@@ -213,20 +213,22 @@ def train_with_test(args, model, sess, saver, f, count, val_lr_imgs = None, val_
     else:
         
         sess.run(model.data_loader.init_op['val_init'])
-        num = len(os.listdir(args.train_GT_path))
+        num = len(os.listdir(args.test_GT_path))
         
         for i in range(num):
-            output, val_gt, learning_rate = sess.run(model.output, model.label, model.lr, feed_dict = {model.global_step : count})
+            output, val_gt, learning_rate = sess.run([model.output, model.label, model.lr], feed_dict = {model.global_step : count})
             output = output[0]
             val_gt = val_gt[0]
             h, w, c = output.shape
             val_gt = val_gt[:h,:w]
+            val_gt = val_gt.astype(np.uint8)
 
             rgb_psnr = skimage.measure.compare_psnr(output[args.scale:-args.scale, args.scale:-args.scale,:], val_gt[args.scale:-args.scale, args.scale:-args.scale,:], data_range = 255)
             y_output = skimage.color.rgb2ycbcr(output)
             y_gt = skimage.color.rgb2ycbcr(val_gt)
             y_output = y_output / 255.0
             y_gt = y_gt / 255.0
+            
             
             y_psnr = skimage.measure.compare_psnr(y_output[args.scale:-args.scale, args.scale:-args.scale, :1], y_gt[args.scale:-args.scale, args.scale:-args.scale, :1], data_range = 1.0)
 

@@ -40,7 +40,6 @@ def train(args, model, sess):
         f = open("RCAN_X%d_train_log.txt"%(args.scale), 'w')
         model_config = 'scale : %d \t n_feats : %d \t n_RG : %d \t n_RCAB : %d \n'%(args.scale, args.n_feats, args.n_RG, args.n_RCAB)
         f.write(model_config)
-        val_num = len(os.listdir(args.test_LR_path))
     
     count = 0
     step = num_imgs // args.batch_size
@@ -93,18 +92,22 @@ def train(args, model, sess):
             sess.run(model.data_loader.init_op['tr_init'])
             
             for k in range(step):
+                s_time = time.time()
                 _ = sess.run([model.train], feed_dict = {model.global_step : count})
+                e_time = time.time()
                 count += 1
                 if count % args.log_freq == 0:
                     summary, loss = sess.run([merged, model.loss])
                     train_writer.add_summary(summary, count)
                     
                     if args.test_with_train:
-                        util.train_with_test(args, model, sess, saver, f, count, None, None, val_num = val_num)
+                        util.train_with_test(args, model, sess, saver, f, count, None, None)
+                        f.close()
+                        f = open("RCAN_X%d_train_log.txt"%(args.scale), 'a')
                         sess.run(model.data_loader.init_op['tr_init'])
 
                     print("%d training step completed" % count)
-                    print("Loss : %0.4f"%losses)
+                    print("Loss : %0.4f"%loss)
                     print("Elpased time : %0.4f"%(e_time - s_time))
 
                 if ((count) % args.model_save_freq ==0):
@@ -179,12 +182,13 @@ def test(args, model, sess):
             val_gt = val_gt[0]
             h, w, c = output.shape
             val_gt = val_gt[:h,:w]
+            val_gt = val_gt.astype(np.uint8)
             
             y_psnr, y_ssim = util.compare_measure(val_gt, output, args)
             
             Y_PSNR_list.append(y_psnr)
             Y_SSIM_list.append(y_ssim)
-            file.write('file name : %s PSNR : %04f SSIM : %04f'%(val_LR[i], y_psnr, y_ssim))
+            file.write('file name : %s PSNR : %04f SSIM : %04f \n'%(val_LR[i], y_psnr, y_ssim))
 
             if args.save_test_result:
                 im = Image.fromarray(output)
